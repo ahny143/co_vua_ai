@@ -12,28 +12,13 @@ DIMENTIONS = 8
 SQ_SIZE = BOARD_HEIGHT // DIMENTIONS
 MAX_FPS = 16
 IMAGES = {}
-theme = "neo"
 
-# def loadImages():
-#     # Normal board
-#     pieces = ["wR", "wN", "wB", "wQ", "wK", "wP", "bR", "bN", "bB", "bQ", "bK", "bP"]
-#     theme = "neo/"
-#     for piece in pieces:
-#         IMAGES[piece] = p.transform.scale(p.image.load("images/"+theme+piece+".png"), (SQ_SIZE, SQ_SIZE))
 def loadImages():
-    pieces = ["wP", "wR", "wN", "wB", "wQ", "wK",
-              "bP", "bR", "bN", "bB", "bQ", "bK"]
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    image_dir = os.path.join(base_dir, "..", "images", theme)
-
+    # Normal board
+    pieces = ["wR", "wN", "wB", "wQ", "wK", "wP", "bR", "bN", "bB", "bQ", "bK", "bP"]
+    theme = "neo/"
     for piece in pieces:
-        image_path = os.path.join(image_dir, piece + ".png")
-        IMAGES[piece] = p.transform.scale(
-            p.image.load(image_path),
-            (SQ_SIZE, SQ_SIZE)
-        )
-
+        IMAGES[piece] = p.transform.scale(p.image.load("images/"+theme+piece+".png"), (SQ_SIZE, SQ_SIZE))
 
 def main():
     difficulty = None
@@ -76,15 +61,31 @@ def main():
     moveFinderProcess = None
     moveUndone = False
 
-    print("Press 1: EASY | 2: MEDIUM | 3: HARD")
 
     while running:
         if difficulty is None:
-            screen.fill(p.Color("white"))
-            font = p.font.SysFont("Arial", 32, True)
-            text = font.render("Press 1-EASY | 2-MEDIUM | 3-HARD", True, p.Color("black"))
-            screen.blit(text, (50, BOARD_HEIGHT // 2))
+            easy_btn, med_btn, hard_btn = difficultyMenu(screen)
             p.display.flip()
+
+            for e in p.event.get():
+                if e.type == p.QUIT:
+                    running = False
+
+                if e.type == p.MOUSEBUTTONDOWN:
+                    pos = p.mouse.get_pos()
+
+                    if easy_btn.collidepoint(pos):
+                        difficulty = "EASY"
+                        ChessAI.setDepth(2)
+
+                    elif med_btn.collidepoint(pos):
+                        difficulty = "MEDIUM"
+                        ChessAI.setDepth(3)
+
+                    elif hard_btn.collidepoint(pos):
+                        difficulty = "HARD"
+                        ChessAI.setDepth(5)
+
             continue
 
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)# Check if the user has clicked the close button (QUIT event)
@@ -114,25 +115,14 @@ def main():
                                 playerClicks = []
                         if not moveMade:
                             playerClicks = [sqSelected]
-                        whoIsPlaying = "P2" if gs.whiteToMove else "P1"
-                        print(whoIsPlaying, "move: ", move.getChessNotation(gs.moveLog))
+                        # whoIsPlaying = "P2" if gs.whiteToMove else "P1"
+                        # print(whoIsPlaying, "move: ", move.getChessNotation(gs.moveLog))
+                        if moveMade:
+                            whoIsPlaying = "P2" if gs.whiteToMove else "P1"
+                            print(whoIsPlaying, "move:", move.getChessNotation(gs.moveLog))
+
 
             elif e.type == p.KEYDOWN:
-                if difficulty is None:
-                    if e.key == p.K_1:
-                        difficulty = 1
-                        ChessAI.setDepth(2)
-                        print("Difficulty: EASY")
-
-                    elif e.key == p.K_2:
-                        difficulty = 2
-                        ChessAI.setDepth(3)
-                        print("Difficulty: MEDIUM")
-
-                    elif e.key == p.K_3:
-                        difficulty = 3
-                        ChessAI.setDepth(5)
-                        print("Difficulty: HARD")
 
                 if e.key == p.K_z:
                     gs.undoMove()
@@ -188,6 +178,12 @@ def main():
 
         clock.tick(MAX_FPS)
         p.display.flip()
+
+        # -------------------------------------------------------------------------------------
+        font = p.font.SysFont("Arial", 18, True)
+        diff_text = font.render(f"Difficulty: {difficulty}", True, p.Color("black"))
+        screen.blit(diff_text, (10, BOARD_HEIGHT - 30))
+
 
 def drawGameState(screen, gs, validMoves, sqSelected, moveLogFont):
     drawBoard(screen)
@@ -279,6 +275,34 @@ def drawEndGameText(screen, text):
     textLocation = p.Rect(0, 0, BOARD_WIDTH, BOARD_HEIGHT).move(BOARD_WIDTH/2 - textObject.get_width()/2, BOARD_HEIGHT/2 - textObject.get_height()/2)
     screen.blit(textObject, textLocation)
 
+def drawButton(screen, text, rect, color, text_color):
+    p.draw.rect(screen, color, rect)
+    font = p.font.SysFont("Arial", 28, True)
+    label = font.render(text, True, text_color)
+    label_rect = label.get_rect(center=rect.center)
+    screen.blit(label, label_rect)
+
+def difficultyMenu(screen):
+    COLOR_BACKGROUND = (237, 238, 209)
+    COLOR_EASY = (159, 223, 124)
+    COLOR_MEDIUM = (119, 153, 82)
+    COLOR_HARD = (59, 93, 41)
+
+    screen.fill(p.Color(COLOR_BACKGROUND))
+
+    font = p.font.SysFont("Arial", 36, True)
+    title = font.render("SELECT DIFFICULTY", True, p.Color("black"))
+    screen.blit(title, (BOARD_WIDTH // 2 - title.get_width() // 2, 80))
+
+    easy_btn = p.Rect(BOARD_WIDTH // 2 - 100, 180, 200, 50)
+    med_btn  = p.Rect(BOARD_WIDTH // 2 - 100, 260, 200, 50)
+    hard_btn = p.Rect(BOARD_WIDTH // 2 - 100, 340, 200, 50)
+
+    drawButton(screen, "EASY", easy_btn, p.Color(COLOR_EASY), p.Color("black"))
+    drawButton(screen, "MEDIUM", med_btn, p.Color(COLOR_MEDIUM), p.Color("black"))
+    drawButton(screen, "HARD", hard_btn, p.Color(COLOR_HARD), p.Color("white"))
+
+    return easy_btn, med_btn, hard_btn
 
 
 if __name__ == "__main__":
