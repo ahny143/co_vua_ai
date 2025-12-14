@@ -1,3 +1,4 @@
+import os
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame as p
@@ -11,18 +12,47 @@ DIMENTIONS = 8
 SQ_SIZE = BOARD_HEIGHT // DIMENTIONS
 MAX_FPS = 16
 IMAGES = {}
+theme = "neo"
 
+# def loadImages():
+#     # Normal board
+#     pieces = ["wR", "wN", "wB", "wQ", "wK", "wP", "bR", "bN", "bB", "bQ", "bK", "bP"]
+#     theme = "neo/"
+#     for piece in pieces:
+#         IMAGES[piece] = p.transform.scale(p.image.load("images/"+theme+piece+".png"), (SQ_SIZE, SQ_SIZE))
 def loadImages():
-    # Normal board
-    pieces = ["wR", "wN", "wB", "wQ", "wK", "wP", "bR", "bN", "bB", "bQ", "bK", "bP"]
-    theme = "neo/"
+    pieces = ["wP", "wR", "wN", "wB", "wQ", "wK",
+              "bP", "bR", "bN", "bB", "bQ", "bK"]
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    image_dir = os.path.join(base_dir, "..", "images", theme)
+
     for piece in pieces:
-        IMAGES[piece] = p.transform.scale(p.image.load("images/"+theme+piece+".png"), (SQ_SIZE, SQ_SIZE))
+        image_path = os.path.join(image_dir, piece + ".png")
+        IMAGES[piece] = p.transform.scale(
+            p.image.load(image_path),
+            (SQ_SIZE, SQ_SIZE)
+        )
+
 
 def main():
+    difficulty = None
+
+    p.init()
+    screen = p.display.set_mode(
+        (BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT)
+    )
+    clock = p.time.Clock()
+    moveLogFont = p.font.SysFont("Arial", 14, False, False)
+
     p.init()
     p.display.set_caption("Chess")
-    p.display.set_icon(p.image.load('images/neo/bQ.png'))
+    # p.display.set_icon(p.image.load('images/neo/bQ.png'))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    ICON_PATH = os.path.join(BASE_DIR, "..", "images", "neo", "bQ.png")
+
+    p.display.set_icon(p.image.load(ICON_PATH))
+
     screen = p.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT), p.SRCALPHA)
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
@@ -46,7 +76,17 @@ def main():
     moveFinderProcess = None
     moveUndone = False
 
+    print("Press 1: EASY | 2: MEDIUM | 3: HARD")
+
     while running:
+        if difficulty is None:
+            screen.fill(p.Color("white"))
+            font = p.font.SysFont("Arial", 32, True)
+            text = font.render("Press 1-EASY | 2-MEDIUM | 3-HARD", True, p.Color("black"))
+            screen.blit(text, (50, BOARD_HEIGHT // 2))
+            p.display.flip()
+            continue
+
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)# Check if the user has clicked the close button (QUIT event)
         for e in p.event.get():
             if e.type == p.QUIT:
@@ -78,6 +118,22 @@ def main():
                         print(whoIsPlaying, "move: ", move.getChessNotation(gs.moveLog))
 
             elif e.type == p.KEYDOWN:
+                if difficulty is None:
+                    if e.key == p.K_1:
+                        difficulty = 1
+                        ChessAI.setDepth(2)
+                        print("Difficulty: EASY")
+
+                    elif e.key == p.K_2:
+                        difficulty = 2
+                        ChessAI.setDepth(3)
+                        print("Difficulty: MEDIUM")
+
+                    elif e.key == p.K_3:
+                        difficulty = 3
+                        ChessAI.setDepth(5)
+                        print("Difficulty: HARD")
+
                 if e.key == p.K_z:
                     gs.undoMove()
                     moveMade = True
@@ -222,6 +278,8 @@ def drawEndGameText(screen, text):
     textObject = font.render(text, 0, p.Color('gray'))
     textLocation = p.Rect(0, 0, BOARD_WIDTH, BOARD_HEIGHT).move(BOARD_WIDTH/2 - textObject.get_width()/2, BOARD_HEIGHT/2 - textObject.get_height()/2)
     screen.blit(textObject, textLocation)
+
+
 
 if __name__ == "__main__":
     main()

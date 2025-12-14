@@ -75,6 +75,10 @@ CHECKMATE = 1000
 STALEMATE = 0
 DEPTH = 3
 
+def setDepth(depth):
+    global DEPTH
+    DEPTH = depth
+
 
 def findRandomMove(validMoves):
     return validMoves[random.randint(0, len(validMoves)-1)]
