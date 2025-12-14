@@ -119,7 +119,9 @@ def findBestMoveThings(gs,validMoves):
     return bestPlayerMove
 
 
-def findBestMove(gs, validMoves, returnQueue):
+def findBestMove(gs, validMoves, returnQueue, depth):
+    global DEPTH
+    DEPTH = depth
     global nextMove
     global counter
     nextMove = None

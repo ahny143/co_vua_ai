@@ -44,23 +44,21 @@ class GameState:
                 self.currentCastlingRight.bqs,
             )
         ]
-
+    # Toan bo nuoc di khong kiem tra chieu tuowng
     def getAllPossibleMoves(self):
         moves = []
 
-        for r in range(len(self.board)):
-            for c in range(len(self.board[r])):
+        for r in range(len(self.board)): #duyet hang
+            for c in range(len(self.board[r])): #duyet cot trong hang
                 piece = self.board[r][c]
                 turn = piece[0]
 
-                if (turn == "w" and self.whiteToMove) or (
-                    turn == "b" and not self.whiteToMove
-                ):
+                if (turn == "w" and self.whiteToMove) or (turn == "b" and not self.whiteToMove):
                     self.moveFunctions[piece[1]](r, c, moves)
 
         return moves
 
-
+    # Lay toan bo nuoc di, kiem tra ca chieu tuong
     def getValidMoves(self):
         tempEnpassantPossible = self.enpassantPossible
         tempCastleRights = CastleRights(
@@ -147,12 +145,12 @@ class GameState:
         return False
 
     def makeMove(self, move):
-        self.board[move.startRow][move.startCol] = "--"
+        self.board[move.startRow][move.startCol] = "--" #Chuyen cho minh vua di thanh rong
         self.board[move.endRow][move.endCol] = move.pieceMoved
 
-        self.moveLog.append(move)
+        self.moveLog.append(move) #Ghi lai nuoc di de co the di lai
 
-        self.whiteToMove = not self.whiteToMove
+        self.whiteToMove = not self.whiteToMove # Chuyen luot
 
         if move.pieceMoved == "wK":
             self.whiteKingLocation = (move.endRow, move.endCol)
@@ -441,6 +439,7 @@ class Move:
             return self.moveID == other.moveID
         return False
 
+    # Bieu dien nuoc di tu vi tri bat dau den ket thuc
     def getChessNotation(self, moveLog):
         return "" if moveLog == None else moveLog[len(moveLog)-1]
 

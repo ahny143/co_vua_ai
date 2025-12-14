@@ -46,7 +46,7 @@ def main():
     moveLogFont = p.font.SysFont("Arial", 14, False, False)
     
     validMoves = gs.getValidMoves()
-    moveMade = False
+    moveMade = False #khi mot nuoc di duoc tao ra
 
     loadImages()
     running=True
@@ -61,6 +61,7 @@ def main():
     moveFinderProcess = None
     moveUndone = False
 
+    aiDepth = 3  # mặc định
 
     while running:
         if difficulty is None:
@@ -71,48 +72,56 @@ def main():
                 if e.type == p.QUIT:
                     running = False
 
+                # Kiem tra chon do kho
                 if e.type == p.MOUSEBUTTONDOWN:
                     pos = p.mouse.get_pos()
 
                     if easy_btn.collidepoint(pos):
                         difficulty = "EASY"
-                        ChessAI.setDepth(2)
+                        aiDepth = 2
+                        # ChessAI.setDepth(2)
 
                     elif med_btn.collidepoint(pos):
                         difficulty = "MEDIUM"
-                        ChessAI.setDepth(3)
+                        aiDepth = 3
+                        # ChessAI.setDepth(3)
 
                     elif hard_btn.collidepoint(pos):
                         difficulty = "HARD"
-                        ChessAI.setDepth(5)
+                        aiDepth = 5
+                        # ChessAI.setDepth(5)
 
             continue
 
-        humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)# Check if the user has clicked the close button (QUIT event)
+        # Kiem tra nguoi choi click nut dong hay k(QUIT event)
+        humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-        
+
+            # Su kien click chuot
             elif e.type == p.MOUSEBUTTONDOWN:
                 if not gameOver and humanTurn:
                     location = p.mouse.get_pos()
                     col = location[0]//SQ_SIZE
                     row = location[1]//SQ_SIZE
-                    if sqSelected == (row, col) or col >= 8:
+
+                    if sqSelected == (row, col) or col >= 8: #Click lan nua thi bo click
                         sqSelected = ()
                         playerClicks = []
                     else:
                         sqSelected = (row, col)
                         playerClicks.append(sqSelected)
 
-                    if len(playerClicks) == 2:
+                    if len(playerClicks) == 2: #Sau khi click lan thu 2, den vi tri muon toi
                         move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                         for i in range(len(validMoves)):
                             if move == validMoves[i]:
                                 gs.makeMove(validMoves[i])
                                 moveMade = True
                                 sqSelected = ()
-                                playerClicks = []
+                                playerClicks = []   #reset lai so lan click
+
                         if not moveMade:
                             playerClicks = [sqSelected]
                         # whoIsPlaying = "P2" if gs.whiteToMove else "P1"
@@ -121,7 +130,7 @@ def main():
                             whoIsPlaying = "P2" if gs.whiteToMove else "P1"
                             print(whoIsPlaying, "move:", move.getChessNotation(gs.moveLog))
 
-
+            # Bam Z de quay lai nuoc di cu
             elif e.type == p.KEYDOWN:
 
                 if e.key == p.K_z:
@@ -151,7 +160,7 @@ def main():
                 print("Thinking...")
 
                 returnQueue = Queue()
-                moveFinderProcess = Process(target=ChessAI.findBestMove, args=(gs, validMoves, returnQueue))
+                moveFinderProcess = Process(target=ChessAI.findBestMove, args=(gs, validMoves, returnQueue, aiDepth))
                 moveFinderProcess.start()
 
             if not moveFinderProcess.is_alive():
