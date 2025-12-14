@@ -16,7 +16,7 @@ IMAGES = {}
 def loadImages():
     # Normal board
     pieces = ["wR", "wN", "wB", "wQ", "wK", "wP", "bR", "bN", "bB", "bQ", "bK", "bP"]
-    theme = "neo/"
+    theme = "chess/"
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/"+theme+piece+".png"), (SQ_SIZE, SQ_SIZE))
 
@@ -34,7 +34,7 @@ def main():
     p.display.set_caption("Chess")
     # p.display.set_icon(p.image.load('images/neo/bQ.png'))
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICON_PATH = os.path.join(BASE_DIR, "..", "images", "neo", "bQ.png")
+    ICON_PATH = os.path.join(BASE_DIR, "..", "images", "chess", "bQ.png")
 
     p.display.set_icon(p.image.load(ICON_PATH))
 
